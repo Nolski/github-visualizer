@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Project 1</title>
+	<link rel="stylesheet" href="bootstrap/css/bootstrap.css">
+	<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+	<div class="container">
+		<h1>GitHub Profile Visualizer</h1>
+		<form role="form" id="form">
+			<div class="form-group">
+				<label for="username">Github Username:</label>
+				<input type="text" class="form-control" id="username" placeholder="Enter GitHub Username">
+			</div>
+			<div class="form-group">
+				<label for="repo">GitHub Repository Name:</label>
+				<input type="text" class="form-control" id="repo" placeholder="Enter GitHub Repo Name">
+			</div>
+			<button type="button" id="submit" class="btn btn-default">Submit</button>
+		</form>
+		<header class="jumbotron" id="repo-info">
+			<h2 id="name"></h2>
+			<p id="description"></p>
+		</header>
+		<div id="data">
+			<div id="about">
+				<h2 id="name">Created by: </h2>
+				<img src="" alt="" />
+			</div>
+			<div id="forked">
+				<h2>Forked?</h2>
+			</div>
+			<div id="repo-sucks">
+				<h2>Does this repo owner have trouble fixing problems?</h2>
+			</div>
+			<div id="language-container">
+				<h2 id="language">Main Language: </h2>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/javascript">
+
+	$(document).ready(function () {
+		$('#submit').click(submit);
+		
+
+		$.getJSON('https://api.github.com/repos/mojombo/jekyll', function ( data ) {
+				console.log('asd ', data);
+				drawData(data);
+		});
+	});
+
+	function submit() {
+		var username = $('#username').val().toLowerCase(),
+			repo = $('#repo').val().toLowerCase();
+
+		var query = 'https://api.github.com/repos/' + username + '/' + repo;
+		
+		$('#form').empty();
+		$.getJSON(query, function ( data ) {
+			console.log('asd ', data);
+			drawData(data);
+		});
+	}
+
+
+	function drawData( data ) {
+		var namelink = '<a href="' + data.homepage + '">' + data.name + '</a>';
+		$('#name').append(namelink);
+		$('#description').append(data.description);
+
+		if(data.fork) {
+			$('#forked').append('Yes! <img class="fork" src="img/fork.png" alt="" />');
+		} else {
+			$('#forked').append('<p>Nope! This project is 100% original! (We hope)</p>');
+		}
+
+		console.log('issues: ', data.open_issues);
+		console.log('forks: ', data.forks / 20);
+
+		if (data.open_issues > data.forks / 20) {
+			var message = '<p>Yes, this repo has <code>' + data.open_issues + 
+				"</code> open issues vs it's <code>" + data.forks + "</code> current forks" + '</p>';
+			$('#repo-sucks').append(message);
+		} else {
+			var message = '<p>Nope! This repo has <code>' + data.open_issues + 
+				"</code> open issues vs it's  <code>" + data.forks + "</code> current forks" + '</p>';
+			$('#repo-sucks').append(message);
+		}
+
+		$('#language').append(codify(data.language));
+
+
+	}
+
+	function codify (string) {
+		return '<code>' + string + '</code>';
+	}
+
+</script>
+</html>
