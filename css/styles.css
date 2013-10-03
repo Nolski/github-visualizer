@@ -1,8 +1,34 @@
+section {
+	margin-top: 30px;
+	margin-bottom: 30px;
+	border-bottom: #888 1px solid;
+}
 #repo-sucks {
+}
+
+#forked {
 	width:100%;
 	text-align: right;
 }
 
-#languge {
-	
+#username-info {
+	display:inline-block;
+}
+
+#profile-pic {
+	display: inline-block;
+	float: right;
+}
+
+#about {
+	padding-bottom: 30px
+}
+
+#language {
+	width:100%;
+	text-align: right;
+}
+
+.comment {
+	font-style: italic;
 }

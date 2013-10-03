@@ -6,8 +6,8 @@
 	<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-	<div class="container">
-		<h1>GitHub Profile Visualizer</h1>
+	<div class="container" id="contain">
+		<h1>GitHub Repo Snapshot</h1>
 		<form role="form" id="form">
 			<div class="form-group">
 				<label for="username">Github Username:</label>
@@ -19,38 +19,41 @@
 			</div>
 			<button type="button" id="submit" class="btn btn-default">Submit</button>
 		</form>
-		<header class="jumbotron" id="repo-info">
-			<h2 id="name"></h2>
-			<p id="description"></p>
-		</header>
-		<div id="data">
-			<div id="about">
-				<h2 id="name">Created by: </h2>
-				<img src="" alt="" />
-			</div>
-			<div id="forked">
+		<div id="data" style="display: none">
+			<header class="jumbotron" id="repo-info">
+				<h2 id="name"></h2>
+				<p id="description"></p>
+			</header>
+			<section id="about">
+				<h2 id="username-info">Created by: </h2>
+				<img id="profile-pic" src="" alt="" />
+			</section>
+			<section id="forked">
 				<h2>Forked?</h2>
-			</div>
-			<div id="repo-sucks">
+			</section>
+			<section id="repo-sucks">
 				<h2>Does this repo owner have trouble fixing problems?</h2>
-			</div>
-			<div id="language-container">
+			</section>
+			<section id="language-container">
 				<h2 id="language">Main Language: </h2>
-			</div>
+			</section>
+			<section id="comments">
+				<h2>Comments:</h2>
+			</section>
+			<section id="contributors">
+				<h2>Contributors:</h2>
+				<canvas id="canvas" height="400"></canvas>
+			</section>
 		</div>
 	</div>
 </body>
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="js/chart.js"></script>
 <script type="text/javascript">
 
 	$(document).ready(function () {
 		$('#submit').click(submit);
-		
-
-		$.getJSON('https://api.github.com/repos/mojombo/jekyll', function ( data ) {
-				console.log('asd ', data);
-				drawData(data);
-		});
+		$('#canvas').attr('width', $('#contain').width());
 	});
 
 	function submit() {
@@ -58,7 +61,7 @@
 			repo = $('#repo').val().toLowerCase();
 
 		var query = 'https://api.github.com/repos/' + username + '/' + repo;
-		
+		$('#data').show();
 		$('#form').empty();
 		$.getJSON(query, function ( data ) {
 			console.log('asd ', data);
@@ -68,6 +71,9 @@
 
 
 	function drawData( data ) {
+		$('#username-info').append(data.owner.login);
+		$('#profile-pic').attr('src', data.owner.avatar_url);
+
 		var namelink = '<a href="' + data.homepage + '">' + data.name + '</a>';
 		$('#name').append(namelink);
 		$('#description').append(data.description);
@@ -93,10 +99,52 @@
 
 		$('#language').append(codify(data.language));
 
+		var commentsURL = data.comments_url;
+		commentsURL = commentsURL.replace('{/number}', '');
+		console.log(commentsURL);
+		$.getJSON(commentsURL, loadComments);
 
+		$.getJSON(data.contributors_url, loadGraph);
 	}
 
-	function codify (string) {
+	function loadComments ( data ) {
+		for (var i = 0; i < 4; i++) {
+			var comment = data[i],
+				message = '<p class="comment">"' + comment.body + '" - ' + comment.user.login
+					+ '</p>';
+			$('#comments').append(message);
+		}
+	}
+
+	function loadGraph( data ) {
+		var canvas = document.getElementById('canvas'),
+			context = canvas.getContext('2d'),
+			i = 0;
+
+		var graphData = {
+			labels: [],
+			datasets : [
+				{
+					fillColor : "rgba(220,220,220,0.5)",
+					strokeColor : "rgba(220,220,220,1)",
+					data : []
+				}
+			]
+		};
+		console.log(data[2]);
+
+		for(var i = 0; i < 20; i++) {
+			var user = data[i];
+			console.log('user: ', user);
+			console.log(user.login);
+			graphData.labels.push(user.login);
+			graphData.datasets[0].data.push(user.contributions);
+		}
+		console.log(graphData);
+		var contributors = new Chart(context).Bar(graphData, {});
+	}
+
+	function codify ( string ) {
 		return '<code>' + string + '</code>';
 	}
 
