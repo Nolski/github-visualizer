@@ -17,7 +17,7 @@ section {
 
 #profile-pic {
 	display: inline-block;
-	float: right;
+	margin-left: 10px
 }
 
 #about {
